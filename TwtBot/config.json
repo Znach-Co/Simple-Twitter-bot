@@ -1,0 +1,21 @@
+{
+  "credentials": {
+    "consumer_key":"consumer_key",
+    "consumer_secret":"consumer_secret",
+    "access_token_key":"access_token_key",
+    "access_token_secret":"access_token_secret"
+  },
+  "limitsPerHour": {
+    "follow": 15,
+    "unfollow": 15,
+    "like": 30,
+    "retweet": 10
+  },
+  "hashtags": ["like for like"],
+  "process": "Like-and-follow",
+  "duration": {
+    "type": "by_users",
+    "value": 6
+  },
+  "whiteList": []
+}
