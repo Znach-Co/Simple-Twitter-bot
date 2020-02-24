@@ -1,6 +1,7 @@
 # Simple-Twitter-bot
 A simple Twitter bot for daily use, to like, follow, unfollow, retweet and automate your Twitter actions. Ready to use!
 
+Twitter credentials (go to https://developer.twitter.com/).
 
 Feel free to maintain and help good tools grow. :point_down:
 
