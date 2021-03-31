@@ -11,11 +11,11 @@
     "like": 30,
     "retweet": 10
   },
-  "hashtags": ["like for like"],
+  "hashtags": ["news", "cnn", "cbc", "abc", "usa", "trump", "biden", "virus", "china", "nytimes"],
   "process": "Like-and-follow",
   "duration": {
-    "type": "by_users",
-    "value": 6
+    "type": "by_time",
+    "value": 2
   },
   "whiteList": []
 }

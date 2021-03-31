@@ -8,6 +8,7 @@ import pickle
 import hashlib
 from datetime import datetime, timedelta
 from copy import deepcopy
+import traceback
 
 
 random.seed(datetime.now())
@@ -62,7 +63,7 @@ class LimitChecker:
         self._limits[req.__name__]['left'] -= 1
 
         if self._limits[req.__name__]['left'] < 0:
-            time.sleep(905 - (round(time.time()) - round(self._limits[req.__name__]['start'])))
+            time.sleep(abs(905 - (round(time.time()) - round(self._limits[req.__name__]['start']))))
             self._limits[req.__name__] = {'left': rate_limit - 1, 'start': round(time.time())}
 
         try:
@@ -70,9 +71,19 @@ class LimitChecker:
         except TwitterError as e:
             for err in e.message:
                 print(err)
-                if err['code'] == 88:
+                print(traceback.format_exc())
+                if err.get('code') == 88:
                     time.sleep(15 * 60 + 5)
                     return req(*args, **kwargs)
+                elif err.get('code') in [144, 139]:
+                    return
+            time.sleep(30)
+
+            try:
+                return req(*args, **kwargs)
+            except Exception as e:
+                print(e)
+                print(traceback.format_exc())
 
 
 class TWBot:
@@ -225,6 +236,7 @@ class TWBot:
                 self.process_like_follow_retweet()
         except Exception as e:
             print(e)
+            print(traceback.format_exc())
         finally:
             self.dump_all()
         print('A simple bot finished the process.')
@@ -263,7 +275,7 @@ class TWBot:
         medias = self.prepare_process_like()
         wait_time = 3600 // (self.limits_per_hour.get('like') + 1)
         for m in medias:
-            time.sleep(wait_time + trunc_gauss(0, 5, -20, 20))
+            time.sleep(abs(wait_time + trunc_gauss(0, 5, -10, 10)))
             self.liking(m)
 
     def process_like_retweet(self):
@@ -273,7 +285,7 @@ class TWBot:
         wait_time = 3600 // (all_acts + 1)
 
         while likes or retweet:
-            time.sleep(wait_time + trunc_gauss(0, 5, -20, 20))
+            time.sleep(abs(wait_time + trunc_gauss(0, 5, -10, 10)))
             rc = random.choices(['l', 'r'], [likes, retweet])[0]
             m = medias.pop(0)
 
@@ -293,7 +305,7 @@ class TWBot:
         wait_time = 3600 // all_acts + 1
 
         while follow_acts or media_acts or unfollow_acts or retweet:
-            time.sleep(wait_time + trunc_gauss(0, 5, -20, 20))
+            time.sleep(abs(wait_time + trunc_gauss(0, 5, -10, 10)))
             rc = random.choices(['f', 'l', 'u', 'r'], [follow_acts, media_acts, unfollow_acts, retweet])[0]
 
             if rc == 'f':
@@ -320,7 +332,7 @@ class TWBot:
                          self.limits_per_hour.get('unfollow'))
         wait_time = 3600 // all_acts + 1
         while follow_acts or media_acts or unfollow_acts:
-            time.sleep(wait_time + trunc_gauss(0, 5, -20, 20))
+            time.sleep(abs(wait_time + trunc_gauss(0, 5, -10, 10)))
             rc = random.choices(['f', 'l', 'u'], [follow_acts, media_acts, unfollow_acts])[0]
 
             if rc == 'f':
@@ -521,7 +533,7 @@ class TWBot:
             if user_id in m_users:
                 return False
 
-            friendship = self.LC.handle_request(self.api.LookupFriendship, user_id)
+            friendship = self.LC.handle_request(self.api.LookupFriendship, user_id, rate_limit=299)
             friendship = friendship[0]._json
             if friendship['connections']:
                 if friendship['connections'][0] != 'none':
@@ -649,6 +661,7 @@ class TWBot:
                 return None
         except Exception as e:
             print(e)
+            print(traceback.format_exc())
             return None
 
     def get_user_media(self, user_id):
